@@ -119,69 +119,69 @@ pub unsafe fn barrett_butterfly_7681(a: __m256i, b: __m256i, c: __m256i, cr:__m2
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(7681));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(7681));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn barrett_butterfly_10753(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{    
+pub unsafe fn barrett_butterfly_10753(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(10753));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(10753));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn barrett_butterfly_11777(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{    
+pub unsafe fn barrett_butterfly_11777(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(11777));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(11777));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn barrett_butterfly_12289(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{    
+pub unsafe fn barrett_butterfly_12289(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(12289));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(12289));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn barrett_butterfly_13313(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{    
+pub unsafe fn barrett_butterfly_13313(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(13313));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(13313));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn barrett_butterfly_15361(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{    
+pub unsafe fn barrett_butterfly_15361(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
     let d = _mm256_mullo_epi16(b, c);
     let dp = _mm256_add_epi16(a, d);
     let ds = _mm256_sub_epi16(a, d);
-    let e = _mm256_sub_epi16(t, _mm256_set1_epi16(15361));
+    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16(15361));
     let ansp = _mm256_sub_epi16(dp, e);
-    let anss = _mm256_add_epi16(dp, e);
+    let anss = _mm256_add_epi16(ds, e);
     [ansp, anss]
 }
 
@@ -450,38 +450,184 @@ mod tests {
         arr
     }
 
-    #[test]
-    fn test_barrett_7681_correctness() {
-        if !is_x86_feature_detected!("avx2") {
-            println!("Skipping AVX2 test: Instruction set not supported");
-            return;
-        }
+    macro_rules! test_barrett {
+        ($func_name:ident, $q:expr) => {
+            #[test]
+            fn $func_name() {
+                if !is_x86_feature_detected!("avx2") {
+                    return;
+                }
 
-        unsafe {
-            let inputs: [i16; 16] = [
-                0, 1, 10, 7680,
-                7681, 7682, 15362,
-                -1, -10, -7681,
-                32767, -32768,
-                100, 200, 300, 400
-            ];
+                unsafe {
+                    let inputs: [i16; 16] = [
+                        0, 1, $q - 1, $q, 
+                        $q + 1, 2 * $q, 2 * $q + 1,
+                        -1, -10, -$q, 
+                        32767, -32768, 
+                        1024, 2048, 4096, 8192
+                    ];
 
-            let input_vec = _mm256_loadu_si256(inputs.as_ptr() as *const __m256i);
-            let output_vec = barrett_fake_7681(input_vec);
-            let outputs = dump_m256i(output_vec);
+                    let input_vec = _mm256_loadu_si256(inputs.as_ptr() as *const __m256i);
+                    let output_vec = super::$func_name(input_vec);
+                    let outputs = dump_m256i(output_vec);
 
-            println!("| Index |   Input |  Output | Diff (In - Out) | Is Multiple of 7681? |");
-            println!("|-------|---------|---------|-----------------|----------------------|");
+                    println!("\nTesting {} with q = {}", stringify!($func_name), $q);
+                    println!("| Index |   Input |  Output | Diff (In - Out) | Status |");
+                    println!("|-------|---------|---------|-----------------|--------|");
 
-            for i in 0..16 {
-                let x = inputs[i];
-                let y = outputs[i];
-                let diff = (x as i32) - (y as i32);
-                let is_valid = diff % 7681 == 0;
-                println!("| {:5} | {:7} | {:7} | {:15} | {:^20} |", 
-                    i, x, y, diff, if is_valid { "Ok" } else { "Failed" });
-                assert!(is_valid, "Reduction failed at index {}: input={}, output={}", i, x, y);
+                    for i in 0..16 {
+                        let x = inputs[i];
+                        let y = outputs[i];
+                        let diff = (x as i32) - (y as i32);
+                        let is_valid = diff % ($q as i32) == 0;
+
+                        println!("| {:5} | {:7} | {:7} | {:15} | {:^6} |", 
+                            i, x, y, diff, if is_valid { "Ok" } else { "Failed" });
+
+                        assert!(is_valid, 
+                            "Reduction failed for {}: x={}, y={}, diff={}", 
+                            stringify!($func_name), x, y, diff
+                        );
+                    }
+                }
             }
-        }
+        };
     }
+
+    test_barrett!(barrett_fake_7681, 7681);
+    test_barrett!(barrett_fake_10753, 10753);
+    test_barrett!(barrett_fake_11777, 11777);
+    test_barrett!(barrett_fake_12289, 12289);
+    test_barrett!(barrett_fake_13313, 13313);
+    test_barrett!(barrett_fake_15361, 15361);
+
+    macro_rules! test_butterfly {
+        ($func_name:ident, $q:expr) => {
+            #[test]
+            fn $func_name() {
+                if !is_x86_feature_detected!("avx2") { return; }
+
+                unsafe {
+                    let q = $q as i32;
+
+                    let c_test_cases = [1, q/2, -q/2, 2, 42];
+
+                    let a_vals: [i16; 16] = [
+                        0, 1, -1, (q-1) as i16, 
+                        1000, -1000, 16384, -16384, 
+                        (q/2) as i16, q as i16, -q as i16, 5,
+                        0, 123, 456, 789
+                    ];
+
+                    let b_vals: [i16; 16] = [
+                        0, 1, -1, (-1) as i16,
+                        2, -2, 500, -500,
+                        (q/4) as i16, 16384, -16384, 10,
+                        q as i16, -q as i16, 1, -1
+                    ];
+
+                    for &c_val in &c_test_cases {
+                        let c_i16 = c_val as i16;
+                        let cr_val = ((c_i16 as f64 * 65536.0) / q as f64).round() as i16;
+
+                        let a_vec = _mm256_loadu_si256(a_vals.as_ptr() as *const __m256i);
+                        let b_vec = _mm256_loadu_si256(b_vals.as_ptr() as *const __m256i);
+                        let c_vec = _mm256_set1_epi16(c_i16);
+                        let cr_vec = _mm256_set1_epi16(cr_val);
+
+                        let [ansp_vec, anss_vec] = super::$func_name(a_vec, b_vec, c_vec, cr_vec);
+                        
+                        let ansp_res = dump_m256i(ansp_vec);
+                        let anss_res = dump_m256i(anss_vec);
+
+                        for i in 0..16 {
+                            let a = a_vals[i] as i32;
+                            let b = b_vals[i] as i32;
+                            let c = c_i16 as i32;
+
+                            let expected_p = (a + b * c).rem_euclid(q);
+                            let expected_s = (a - b * c).rem_euclid(q);
+
+                            let res_p = (ansp_res[i] as i32).rem_euclid(q);
+                            assert_eq!(res_p, expected_p, 
+                                "\nFAILED P: q={}, c={}\nInput: a={}, b={}\nGot: {}, Expected: {}", 
+                                q, c, a, b, ansp_res[i], expected_p);
+
+                            let res_s = (anss_res[i] as i32).rem_euclid(q);
+                            assert_eq!(res_s, expected_s, 
+                                "\nFAILED S: q={}, c={}\nInput: a={}, b={}\nGot: {}, Expected: {}", 
+                                q, c, a, b, anss_res[i], expected_s);
+                        }
+                    }
+                    println!("SUCCESS: {} passed for all c cases.", stringify!($func_name));
+                }
+            }
+        };
+    }
+
+    test_butterfly!(barrett_butterfly_7681, 7681);
+    test_butterfly!(barrett_butterfly_10753, 10753);
+    test_butterfly!(barrett_butterfly_11777, 11777);
+    test_butterfly!(barrett_butterfly_12289, 12289);
+    test_butterfly!(barrett_butterfly_13313, 13313);
+    test_butterfly!(barrett_butterfly_15361, 15361);
+    
+    macro_rules! test_barrett_mul {
+        ($func_name:ident, $q:expr) => {
+            #[test]
+            fn $func_name() {
+                if !is_x86_feature_detected!("avx2") { return; }
+
+                unsafe {
+                    let q = $q as i32;
+
+                    // 1. a within q/2 ~ -q/2
+                    let test_a_factors = [1i16, 42, (q/2) as i16, (-q/2) as i16];
+                    let b_vals: [i16; 16] = [
+                        0, 1, -1, q as i16,
+                        (q+1) as i16, (q-1) as i16, 1000, -1000,
+                        (32767 / 7681 * 7681) as i16,
+                        5, 10, 20, 50, 100, 200, 500
+                    ];
+
+                    for &a_val in &test_a_factors {
+                        let a_i32 = a_val as i32;
+                        let ar_overq_val = ((a_i32 as f64 * 65536.0) / q as f64).round() as i16;
+
+                        let b_vec = _mm256_loadu_si256(b_vals.as_ptr() as *const __m256i);
+                        let a_vec = _mm256_set1_epi16(a_val);
+                        let ar_overq_vec = _mm256_set1_epi16(ar_overq_val);
+
+                        let res_vec = super::$func_name(b_vec, a_vec, ar_overq_vec);
+                        let results = dump_m256i(res_vec);
+
+                        for i in 0..16 {
+                            let b = b_vals[i] as i32;
+                            let a = a_val as i32;
+                            
+                            let expected = (a * b).rem_euclid(q);
+
+                            let actual = results[i] as i32;
+                            let diff = (actual - expected).abs();
+
+                            assert!(diff % q == 0, 
+                                "\nFAILED: {} with q={}, a={}, ar={}\nInput b: {}\nGot: {}, Expected (mod q): {}\nDiff is not a multiple of q!", 
+                                stringify!($func_name), q, a, ar_overq_val, b, actual, expected);
+                            
+                            assert!(actual > -2 * q && actual < 2 * q,
+                                "Output range error: actual {}", actual);
+                        }
+                    }
+                    println!("SUCCESS: {} passed.", stringify!($func_name));
+                }
+            }
+        };
+    }
+
+    test_barrett_mul!(barrett_mul_7681, 7681);
+    test_barrett_mul!(barrett_mul_10753, 10753);
+    test_barrett_mul!(barrett_mul_11777, 11777);
+    test_barrett_mul!(barrett_mul_12289, 12289);
+    test_barrett_mul!(barrett_mul_13313, 13313);
+    test_barrett_mul!(barrett_mul_15361, 15361);
 }

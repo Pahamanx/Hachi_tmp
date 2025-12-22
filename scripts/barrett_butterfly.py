@@ -7,9 +7,9 @@ for i in f:
     print("    let d = _mm256_mullo_epi16(b, c);")
     print("    let dp = _mm256_add_epi16(a, d);")
     print("    let ds = _mm256_sub_epi16(a, d);")
-    print("    let e = _mm256_sub_epi16(t, _mm256_set1_epi16("+str(i)+"));")
+    print("    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16("+str(i)+"));")
     print("    let ansp = _mm256_sub_epi16(dp, e);")
-    print("    let anss = _mm256_add_epi16(dp, e);")
+    print("    let anss = _mm256_add_epi16(ds, e);")
     print("    [ansp, anss]")
     print("}\n")
 
