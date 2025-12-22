@@ -3,7 +3,7 @@ use std::arch::x86_64::*;
 use crate::field::macros::*;
 // RNS: [257, 3329, 7681, 7937, 9473, 10753]
 
-// reduce 2^32-99
+// @reduce 2^32-99
 #[target_feature(enable = "avx2")]
 pub unsafe fn reduce32(even_64: __m256i, odd_64: __m256i) -> __m256i {
     
@@ -37,7 +37,7 @@ pub unsafe fn reduce32(even_64: __m256i, odd_64: __m256i) -> __m256i {
     _mm256_or_si256(res_even, odd_shifted)
 }
 
-// barrett_fake
+// @barrett_fake - tested
 #[target_feature(enable = "avx2")]
 pub unsafe fn barrett_fake_7681(x: __m256i) -> __m256i{
     let d = _mm256_mulhi_epi16(x, _mm256_set1_epi16(9));
@@ -112,7 +112,7 @@ pub unsafe fn barrett_fake_15361(x: __m256i) -> __m256i{
 //             print(anss, a - (r*m)%i, "||", a, r, m, ansp - (a + (r*m)%i))
 // """
 
-// barrett_butterfly
+// @barrett_butterfly - tested
 #[target_feature(enable = "avx2")]
 pub unsafe fn barrett_butterfly_7681(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let t = _mm256_mulhi_epi16(b, cr);
@@ -186,7 +186,7 @@ pub unsafe fn barrett_butterfly_15361(a: __m256i, b: __m256i, c: __m256i, cr:__m
 }
 
 
-// barrett_fake_32 
+// @barrett_fake_32 
 #[target_feature(enable = "avx2")]
 pub unsafe fn barrett_fake_7681_32(x: __m256i, y: __m256i) -> __m256i{
     let m1 = _mm256_set1_epi32(5585133);
@@ -271,7 +271,7 @@ pub unsafe fn barrett_fake_15361_32(x: __m256i, y: __m256i) -> __m256i{
     ans
 }
 
-// barrett_mul
+// @barrett_mul - tested
 #[target_feature(enable = "avx2")]
 pub unsafe fn barrett_mul_7681(b: __m256i, a: __m256i, ar_overq: __m256i) -> __m256i{
     let t = _mm256_mulhi_epi16(b, ar_overq);
@@ -326,7 +326,7 @@ pub unsafe fn barrett_mul_15361(b: __m256i, a: __m256i, ar_overq: __m256i) -> __
     g
 }
 
-// barrett_ibutterfly
+// @barrett_ibutterfly
 #[target_feature(enable = "avx2")]
 pub unsafe fn barrett_ibutterfly_7681(a: __m256i, b: __m256i, c: __m256i, cr:__m256i) -> [__m256i;2]{
     let ans0 = barrett_fake_7681(_mm256_add_epi16(a, b));
@@ -375,67 +375,116 @@ pub unsafe fn barrett_ibutterfly_15361(a: __m256i, b: __m256i, c: __m256i, cr:__
     [ans0, ans1]
 }
 
-// montproduct
+// @montproduct
 
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_7681(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_7681(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(7681);
+    let mu_vec = _mm256_set1_epi16(-7679);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-7679));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(7681));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
 
+// --- Field: 10753 ---
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_10753(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_10753(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(10753);
+    let mu_vec = _mm256_set1_epi16(-10751);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-10751));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(10753));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
 
+// --- Field: 11777 ---
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_11777(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_11777(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(11777);
+    let mu_vec = _mm256_set1_epi16(-11775);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-11775));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(11777));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
 
+// --- Field: 12289 ---
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_12289(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_12289(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(12289);
+    let mu_vec = _mm256_set1_epi16(-12287);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-12287));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(12289));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
 
+// --- Field: 13313 ---
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_13313(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_13313(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(13313);
+    let mu_vec = _mm256_set1_epi16(-13311);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-13311));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(13313));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
 
+// --- Field: 15361 ---
 #[target_feature(enable = "avx2")]
-pub unsafe fn montproduct_15361(x: __m256i, y: __m256i) -> __m256i{
+pub unsafe fn montproduct_15361(x: __m256i, y: __m256i) -> __m256i {
+    let f_vec = _mm256_set1_epi16(15361);
+    let mu_vec = _mm256_set1_epi16(-15359);
+    
     let lo = _mm256_mullo_epi16(x, y);
     let hi = _mm256_mulhi_epi16(x, y);
-    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16(-15359));
-    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16(15361));
-    let f = _mm256_sub_epi16(hi, e);
-    f
+    
+    // k = (x * y * mu) mod 2^16
+    let k = _mm256_mullo_epi16(lo, mu_vec);
+    
+    // res = (x * y - k * f) / 2^16
+    let kf_hi = _mm256_mulhi_epi16(k, f_vec);
+    let res = _mm256_sub_epi16(hi, kf_hi);
+    res
 }
+
+
 
 
 #[cfg(test)]
@@ -630,4 +679,147 @@ mod tests {
     test_barrett_mul!(barrett_mul_12289, 12289);
     test_barrett_mul!(barrett_mul_13313, 13313);
     test_barrett_mul!(barrett_mul_15361, 15361);
+
+    // macro_rules! test_mont_identity {
+    //     ($func_name:ident, $q:expr, $r_mod_q:expr) => {
+    //         #[test]
+    //         fn $func_name() {
+    //             if !is_x86_feature_detected!("avx2") { return; }
+
+    //             unsafe {
+    //                 let q = $q as i32;
+    //                 let r_mod_q = $r_mod_q as i32;
+
+    //                 // 準備測試向量
+    //                 let x_vals: [i16; 16] = [
+    //                     0, 1, -1, 100, 
+    //                     -1, 500, -500, 2,
+    //                     2, 2048, 4096, 123,
+    //                     2, 10, 20, 30
+    //                 ];
+    //                 let y_vals: [i16; 16] = [
+    //                     0, 1, 2, 1,
+    //                     1, 5, -5, 100,
+    //                     2, 10, -1, 3276,
+    //                     42, 1, 2, 3
+    //                 ];
+
+    //                 let x_vec = _mm256_loadu_si256(x_vals.as_ptr() as *const __m256i);
+    //                 let y_vec = _mm256_loadu_si256(y_vals.as_ptr() as *const __m256i);
+
+    //                 let res_vec = super::$func_name(x_vec, y_vec);
+    //                 let results = dump_m256i(res_vec);
+
+    //                 println!("\n--- Testing Montgomery Identity: {} (q={}) ---", stringify!($func_name), q);
+
+    //                 for i in 0..16 {
+    //                     let x = x_vals[i] as i32;
+    //                     let y = y_vals[i] as i32;
+    //                     let actual = results[i] as i32;
+
+    //                     // 你要求的檢查點: montproduct(x, y) * (R % q) ≡ x * y (mod q)
+    //                     let left_hand_side = (actual * r_mod_q).rem_euclid(q);
+    //                     let right_hand_side = (x * y).rem_euclid(q);
+
+    //                     assert_eq!(left_hand_side, right_hand_side, 
+    //                         "\nFAILED Identity {}: q={}\nInputs: x={}, y={}\nActual Mont: {}\nCheck: ({} * {}) % {} = {} != {} (x*y % q)", 
+    //                         stringify!($func_name), q, x, y, actual, actual, r_mod_q, q, left_hand_side, right_hand_side);
+
+    //                     // 同時保留基本的範圍檢查，這對於 Debug 你的 montproduct 實作很有幫助
+    //                     assert!(actual.abs() < q, "Range error: actual output {} is not in (-q, q)", actual);
+    //                 }
+    //                 println!("SUCCESS: Identity for {} passed.", stringify!($func_name));
+    //             }
+    //         }
+    //     };
+    // }
+
+    // // 根據你提供的 r%q 數值進行測試
+    // test_mont_identity!(montproduct_7681, 7681, 5569);
+    // test_mont_identity!(montproduct_10753, 10753, 4036);
+    // test_mont_identity!(montproduct_11777, 11777, 1389);
+    // test_mont_identity!(montproduct_12289, 12289, 10952);
+    // test_mont_identity!(montproduct_13313, 13313, 7114);
+    // test_mont_identity!(montproduct_15361, 15361, 974);
+    macro_rules! test_ibutterfly {
+        ($func_name:ident, $q:expr) => {
+            #[test]
+            fn $func_name() {
+                if !is_x86_feature_detected!("avx2") { return; }
+
+                unsafe {
+                    let q = $q as i32;
+
+                    // 模擬 Twiddle factors (c) 的測試案例
+                    let c_test_cases = [1, q/2, -q/2, 2, 42];
+
+                    // 測試選擇：包含邊界值、負數以及接近 16-bit 邊界的值
+                    let a_vals: [i16; 16] = [
+                        0, 1, -1, (q-1) as i16, 
+                        1000, -1000, 16384, -16384, 
+                        (q/2) as i16, q as i16, -q as i16, 5,
+                        3276, -3276, 456, 789
+                    ];
+
+                    let b_vals: [i16; 16] = [
+                        0, 1, -1, (-1) as i16,
+                        2, -2, 500, -500,
+                        (q/4) as i16, 16384, -16384, 10,
+                        q as i16, -q as i16, 3276, -3276
+                    ];
+
+                    for &c_val in &c_test_cases {
+                        let c_i16 = c_val as i16;
+                        // Barrett Precomputed: cr = round(c * 2^16 / q)
+                        // 這邊使用與你原本測試相同的浮點數模擬計算方式
+                        let cr_val = ((c_i16 as f64 * 65536.0) / q as f64).round() as i16;
+
+                        let a_vec = _mm256_loadu_si256(a_vals.as_ptr() as *const __m256i);
+                        let b_vec = _mm256_loadu_si256(b_vals.as_ptr() as *const __m256i);
+                        let c_vec = _mm256_set1_epi16(c_i16);
+                        let cr_vec = _mm256_set1_epi16(cr_val);
+
+                        // 執行你的 Inverse Butterfly 實作
+                        let [ans0_vec, ans1_vec] = super::$func_name(a_vec, b_vec, c_vec, cr_vec);
+                        
+                        let ans0_res = dump_m256i(ans0_vec);
+                        let ans1_res = dump_m256i(ans1_vec);
+
+                        for i in 0..16 {
+                            let a = a_vals[i] as i32;
+                            let b = b_vals[i] as i32;
+                            let c = c_i16 as i32;
+
+                            // 理論預期值
+                            // ans0: (a + b) mod q
+                            let expected0 = (a + b).rem_euclid(q);
+                            // ans1: (a - b) * c mod q
+                            let expected1 = ((a - b) * c).rem_euclid(q);
+
+                            // 驗證 ans0
+                            let res0 = (ans0_res[i] as i32).rem_euclid(q);
+                            assert_eq!(res0, expected0, 
+                                "\nFAILED iNTT ans0: q={}, c={}\nInput: a={}, b={}\nGot: {}, Expected: {}", 
+                                q, c, a, b, ans0_res[i], expected0);
+
+                            // 驗證 ans1
+                            let res1 = (ans1_res[i] as i32).rem_euclid(q);
+                            assert_eq!(res1, expected1, 
+                                "\nFAILED iNTT ans1: q={}, c={}\nInput: a={}, b={}\nGot: {}, Expected: {} (mod {})", 
+                                q, c, a, b, ans1_res[i], expected1, q);
+                        }
+                    }
+                    println!("SUCCESS: {} passed for all c cases.", stringify!($func_name));
+                }
+            }
+        };
+    }
+
+    // 實例化六個 Field 的測試
+    test_ibutterfly!(barrett_ibutterfly_7681, 7681);
+    test_ibutterfly!(barrett_ibutterfly_10753, 10753);
+    test_ibutterfly!(barrett_ibutterfly_11777, 11777);
+    test_ibutterfly!(barrett_ibutterfly_12289, 12289);
+    test_ibutterfly!(barrett_ibutterfly_13313, 13313);
+    test_ibutterfly!(barrett_ibutterfly_15361, 15361);
 }
