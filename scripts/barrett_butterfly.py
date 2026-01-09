@@ -8,8 +8,8 @@ for i in f:
     print("    let dp = _mm256_add_epi16(a, d);")
     print("    let ds = _mm256_sub_epi16(a, d);")
     print("    let e = _mm256_mullo_epi16(t, _mm256_set1_epi16("+str(i)+"));")
-    print("    let ansp = _mm256_sub_epi16(dp, e);")
-    print("    let anss = _mm256_add_epi16(ds, e);")
+    print("    let ansp = range_narrow(_mm256_sub_epi16(dp, e), "+str(i)+");")
+    print("    let anss = range_narrow(_mm256_add_epi16(ds, e), "+str(i)+");")
     print("    [ansp, anss]")
     print("}\n")
 
