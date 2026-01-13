@@ -37,12 +37,12 @@ mod tests {
                 unsafe {
                     let q = $q as i32;
                     // 注意：Scaling factor N 通常是多項式長度 256
-                    let scaling_factor = 32i32;
+                    let scaling_factor = 256i32;
 
                     // 1. 建立測資
                     let mut p_data = [0i16; 256];
                     for i in 0..256 {
-                        p_data[i] = (1 as i32 % q) as i16;
+                        p_data[i] = (700*i as i32 % q) as i16;
                     }
                     let p_original = p_data.clone();
 
@@ -116,7 +116,9 @@ mod tests {
                                 let mut b = p_actual[i] as i32;
                                 let expected = (a * scaling_factor).rem_euclid(q);
                                 
-                                // 僅列印出錯的位元
+                                while b < 0{
+                                    b += q;
+                                }
                                 println!("{:<10} | {:<10} | {:<10} | {:<10}", i, a, expected, b);
                             }
                             println!("==========================================\n");
@@ -133,9 +135,9 @@ mod tests {
         };
     }
     test_ntt_roundtrip!(roundtrip_7681, 7681, ntt_7681, intt_7681);
-    // test_ntt_roundtrip!(roundtrip_10753, 10753, ntt_10753, intt_10753);
-    // test_ntt_roundtrip!(roundtrip_11777, 11777, ntt_11777, intt_11777);
-    // test_ntt_roundtrip!(roundtrip_12289, 12289, ntt_12289, intt_12289);
-    // test_ntt_roundtrip!(roundtrip_13313, 13313, ntt_13313, intt_13313);
-    // test_ntt_roundtrip!(roundtrip_15361, 15361, ntt_15361, intt_15361);
+    test_ntt_roundtrip!(roundtrip_10753, 10753, ntt_10753, intt_10753);
+    test_ntt_roundtrip!(roundtrip_11777, 11777, ntt_11777, intt_11777);
+    test_ntt_roundtrip!(roundtrip_12289, 12289, ntt_12289, intt_12289);
+    test_ntt_roundtrip!(roundtrip_13313, 13313, ntt_13313, intt_13313);
+    test_ntt_roundtrip!(roundtrip_15361, 15361, ntt_15361, intt_15361);
 }
