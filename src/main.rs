@@ -36,63 +36,31 @@ mod tests {
                 
                 unsafe {
                     let q = $q as i32;
-                    // 注意：Scaling factor N 通常是多項式長度 256
                     let scaling_factor = 256i32;
 
-                    // 1. 建立測資
                     let mut p_data = [0i16; 256];
                     for i in 0..256 {
                         p_data[i] = (700*i as i32 % q) as i16;
                     }
                     let p_original = p_data.clone();
 
-                    // 2. 載入至向量 (使用 read_unaligned 處理一般 i16 陣列)
                     let ptr = p_data.as_ptr() as *const [__m256i; 16];
                     let input_vecs = std::ptr::read_unaligned(ptr);
 
-                    // 3. 執行正向與逆向變換
                     let ntt_res = crate::ntt::ntt::$ntt_fn(input_vecs);
                     let intt_res = crate::ntt::intt::$intt_fn(ntt_res);
 
-                    // 4. 寫回陣列
                     let mut p_actual = [0i16; 256];
                     let out_ptr = p_actual.as_mut_ptr() as *mut [__m256i; 16];
                     std::ptr::write_unaligned(out_ptr, intt_res);
 
-                    // 5. 驗證同餘關係
                     for i in 0..256 {
                         let a = p_original[i] as i32;
                         let b = p_actual[i] as i32;
                         
-                        // 理論值: (a * scaling_factor) mod q
                         let expected_mod_q = (a * scaling_factor).rem_euclid(q);
-                        // 實際值取模: b mod q
                         let actual_mod_q = b.rem_euclid(q);
 
-                        // 判斷是否同餘: 只要 actual % q == expected % q 即可
-                        // if actual_mod_q != expected_mod_q {
-                        //     println!("\n=== DEBUG: Round-trip FAILED (Congruence Check) for q={} ===", q);
-                        //     println!("Index {} failed.", i);
-                        //     println!("Original[{}]: {}", i, a);
-                        //     println!("Actual (Raw) : {}", b);
-                        //     println!("Actual (mod q): {}", actual_mod_q);
-                        //     println!("Expected (mod q): {}", expected_mod_q);
-                            
-                        //     println!("\n--- Full Polynomial Arrays ---");
-                        //     println!("Original: {:?}\n", p_original);
-                        //     println!("Actual Raw: {:?}\n", p_actual);
-                            
-                        //     let p_expected_mod: Vec<i16> = p_original.iter()
-                        //         .map(|&x| (x as i32 * scaling_factor).rem_euclid(q) as i16)
-                        //         .collect();
-                        //     println!("Expected (mod q): {:?}", p_expected_mod);
-                        //     println!("==========================================\n");
-
-                        //     panic!(
-                        //         "Round-trip FAILED at index {}: {} is not congruent to {} (mod {})", 
-                        //         i, b, expected_mod_q, q
-                        //     );
-                        // }
                         let mut error_indices = Vec::new();
                         for i in 0..256 {
                             let a = p_original[i] as i32;
