@@ -13,6 +13,6 @@ for f in fields:
     print("    let d = _mm256_mullo_epi16(lo, _mm256_set1_epi16("+str(tmp)+"));")
     print("    let e = _mm256_mulhi_epi16(d, _mm256_set1_epi16("+str(f)+"));")
     print("    let f = _mm256_sub_epi16(hi, e);")
-    print("    f")
+    print("    range_narrow(f, "+str(f)+")")
     print("}\n")
 """
